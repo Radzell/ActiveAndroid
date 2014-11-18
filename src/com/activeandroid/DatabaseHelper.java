@@ -35,6 +35,7 @@ import android.text.TextUtils;
 import com.activeandroid.util.IOUtils;
 import com.activeandroid.util.Log;
 import com.activeandroid.util.NaturalOrderComparator;
+import com.activeandroid.util.OnUpgradeListener;
 import com.activeandroid.util.SQLiteUtils;
 import com.activeandroid.util.SqlParser;
 
@@ -50,8 +51,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
     //////////////////////////////////////////////////////////////////////////////////////
 
     private final String mSqlParser;
+    private OnUpgradeListener mOnUpgradeListener;
 
-	//////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	//////////////////////////////////////////////////////////////////////////////////////
 
@@ -59,6 +61,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 		super(configuration.getContext(), configuration.getDatabaseName(), null, configuration.getDatabaseVersion());
 		copyAttachedDatabase(configuration.getContext(), configuration.getDatabaseName());
 		mSqlParser = configuration.getSqlParser();
+        mOnUpgradeListener = configuration.getOnUpgradeListener();
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -83,6 +86,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 		executePragmas(db);
 		executeCreate(db);
 		executeMigrations(db, oldVersion, newVersion);
+        if(null!=mOnUpgradeListener){
+            mOnUpgradeListener.onUpgrade(db,oldVersion,newVersion);
+        }
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -120,6 +126,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 			Log.e("Failed to open file", e);
 		}
 	}
+    public void setOnUpgradeListener(OnUpgradeListener listener){
+        this.mOnUpgradeListener=listener;
+    }
 
 	//////////////////////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS

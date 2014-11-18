@@ -20,10 +20,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import android.app.AlertDialog;
 import android.content.Context;
 
 import com.activeandroid.serializer.TypeSerializer;
 import com.activeandroid.util.Log;
+import com.activeandroid.util.OnUpgradeListener;
 import com.activeandroid.util.ReflectionUtils;
 
 public class Configuration {
@@ -42,8 +44,9 @@ public class Configuration {
 	private List<Class<? extends Model>> mModelClasses;
 	private List<Class<? extends TypeSerializer>> mTypeSerializers;
 	private int mCacheSize;
+    private OnUpgradeListener mOnUpgradeListener;
 
-	//////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	//////////////////////////////////////////////////////////////////////////////////////
 
@@ -87,7 +90,11 @@ public class Configuration {
 		return mModelClasses != null && mModelClasses.size() > 0;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////
+    public OnUpgradeListener getOnUpgradeListener() {
+        return mOnUpgradeListener;
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////
 	// INNER CLASSES
 	//////////////////////////////////////////////////////////////////////////////////////
 
@@ -118,6 +125,7 @@ public class Configuration {
 		private String mSqlParser;
 		private List<Class<? extends Model>> mModelClasses;
 		private List<Class<? extends TypeSerializer>> mTypeSerializers;
+        private OnUpgradeListener mOnUpgradeListener;
 
 		//////////////////////////////////////////////////////////////////////////////////////
 		// CONSTRUCTORS
@@ -132,6 +140,10 @@ public class Configuration {
 		// PUBLIC METHODS
 		//////////////////////////////////////////////////////////////////////////////////////
 
+        public Builder setOnUpgradeListener(OnUpgradeListener listener){
+            mOnUpgradeListener = listener;
+            return this;
+        }
 		public Builder setCacheSize(int cacheSize) {
 			mCacheSize = cacheSize;
 			return this;
@@ -201,6 +213,7 @@ public class Configuration {
 		public Configuration create() {
 			Configuration configuration = new Configuration(mContext);
 			configuration.mCacheSize = mCacheSize;
+            configuration.mOnUpgradeListener = mOnUpgradeListener;
 
 			// Get database name from meta-data
 			if (mDatabaseName != null) {
