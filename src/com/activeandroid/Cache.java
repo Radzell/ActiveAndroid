@@ -155,4 +155,10 @@ public final class Cache {
 	public static synchronized String getTableName(Class<? extends Model> type) {
 		return sModelInfo.getTableInfo(type).getTableName();
 	}
+    public static synchronized int getOldDbVersion(){
+        return sDatabaseHelper.getOldDbVersion();
+    }
+    public static synchronized int getOldNewVersion(){
+        return sDatabaseHelper.getNewDbVersion();
+    }
 }

@@ -52,6 +52,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 
     private final String mSqlParser;
     private OnUpgradeListener mOnUpgradeListener;
+    private int mOldVersion = 0;
+    private int mNewVersion=0;
 
     //////////////////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -89,6 +91,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
         if(null!=mOnUpgradeListener){
             mOnUpgradeListener.onUpgrade(db,oldVersion,newVersion);
         }
+        this.mOldVersion=oldVersion;
+        this.mNewVersion=newVersion;
+
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -128,6 +133,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 	}
     public void setOnUpgradeListener(OnUpgradeListener listener){
         this.mOnUpgradeListener=listener;
+    }
+
+    public int getOldDbVersion() {
+        return mOldVersion;
+    }
+
+    public int getNewDbVersion() {
+        return mNewVersion;
     }
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -263,4 +276,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 
         }
 	}
+
+
 }

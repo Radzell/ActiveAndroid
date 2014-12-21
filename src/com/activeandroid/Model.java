@@ -18,6 +18,7 @@ package com.activeandroid;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.activeandroid.content.ContentProvider;
@@ -37,31 +38,48 @@ public abstract class Model {
 
 	/** Prime number used for hashcode() implementation. */
 	private static final int HASH_PRIME = 739;
+    private boolean dbEnabled=false;
 
-	//////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////
 	// PRIVATE MEMBERS
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	private Long mId = null;
 
-	private final TableInfo mTableInfo;
-	private final String idName;
+	private TableInfo mTableInfo;
+	private String idName;
 	//////////////////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	public Model() {
-		mTableInfo = Cache.getTableInfo(getClass());
-		idName = mTableInfo.getIdName();
+        this(true);
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////
+    public Model(boolean useDB){
+        if(useDB){
+            enableDB(true);
+        }
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	//////////////////////////////////////////////////////////////////////////////////////
 
-	public final Long getId() {
+    private void enableDB(boolean enable) {
+        mTableInfo = Cache.getTableInfo(getClass());
+        idName = mTableInfo.getIdName();
+        dbEnabled =enable;
+    }
+
+    public boolean isDbEnabled(){return dbEnabled;}
+    public final Long getId() {
 		return mId;
 	}
+    public final void setId(Long pId) {
+         mId=pId;
+    }
 
 	public final void delete() {
 		Cache.openDatabase().delete(mTableInfo.getTableName(), idName+"=?", new String[] { getId().toString() });
@@ -71,7 +89,7 @@ public abstract class Model {
 				.notifyChange(ContentProvider.createUri(mTableInfo.getType(), mId), null);
 	}
 
-	public final Long save() {
+	public final Long save() throws SQLException{
 		final SQLiteDatabase db = Cache.openDatabase();
 		final ContentValues values = new ContentValues();
 
@@ -152,10 +170,10 @@ public abstract class Model {
 		}
 
 		if (mId == null) {
-			mId = db.insert(mTableInfo.getTableName(), null, values);
+			mId = db.insertOrThrow(mTableInfo.getTableName(), null, values);
 		}
 		else {
-			db.update(mTableInfo.getTableName(), values, idName+"=" + mId, null);
+			db.update(mTableInfo.getTableName(), values, idName + "=" + mId, null);
 		}
 
 		Cache.getContext().getContentResolver()
