@@ -88,8 +88,11 @@ public abstract class Model {
 		Cache.getContext().getContentResolver()
 				.notifyChange(ContentProvider.createUri(mTableInfo.getType(), mId), null);
 	}
-
+    public void onBeforeSave(){
+        
+    }
 	public final Long save() throws SQLException{
+        onBeforeSave();
 		final SQLiteDatabase db = Cache.openDatabase();
 		final ContentValues values = new ContentValues();
 
