@@ -8,20 +8,20 @@ import android.widget.ArrayAdapter;
 
 import com.activeandroid.Model;
 
-public class ModelAdapter<T extends Model> extends ArrayAdapter<T> {
-	public ModelAdapter(Context context, int textViewResourceId) {
+public class ModelArrayAdapter<T extends Model> extends ArrayAdapter<T> {
+	public ModelArrayAdapter(Context context, int textViewResourceId) {
 		super(context, textViewResourceId);
 	}
 
-	public ModelAdapter(Context context, int resource, int textViewResourceId) {
+	public ModelArrayAdapter(Context context, int resource, int textViewResourceId) {
 		super(context, resource, textViewResourceId);
 	}
 
-	public ModelAdapter(Context context, int textViewResourceId, List<T> objects) {
+	public ModelArrayAdapter(Context context, int textViewResourceId, List<T> objects) {
 		super(context, textViewResourceId, objects);
 	}
 
-	public ModelAdapter(Context context, int resource, int textViewResourceId, List<T> objects) {
+	public ModelArrayAdapter(Context context, int resource, int textViewResourceId, List<T> objects) {
 		super(context, resource, textViewResourceId, objects);
 	}
 
