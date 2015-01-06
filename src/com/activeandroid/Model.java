@@ -20,6 +20,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.text.TextUtils;
 
 import com.activeandroid.content.ContentProvider;
 import com.activeandroid.query.Delete;
@@ -176,8 +177,30 @@ public abstract class Model {
 			mId = db.insertOrThrow(mTableInfo.getTableName(), null, values);
 		}
 		else {
-			db.update(mTableInfo.getTableName(), values, idName + "=" + mId, null);
-		}
+            String matchStatement;
+
+            if(!mTableInfo.hasMatchValue()) {
+
+                matchStatement = idName + "=" + mId;
+            }else{
+                List<String> matchTokens= new ArrayList<String>();
+
+                for(Field field : mTableInfo.getMatchValue()){
+                    try {
+                        final String fieldName = mTableInfo.getColumnName(field);
+                        Object value = field.get(this);
+                        String statement = fieldName + "=" + value;
+                        matchTokens.add(statement);
+                    } catch (IllegalAccessException e) {
+                        Log.e(e.getClass().getName(), e);
+                    }
+                }
+                matchStatement = TextUtils.join(" AND ",matchTokens);
+            }
+
+            db.update(mTableInfo.getTableName(), values, matchStatement, null);
+
+        }
 
 		Cache.getContext().getContentResolver()
 				.notifyChange(ContentProvider.createUri(mTableInfo.getType(), mId), null);

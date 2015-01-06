@@ -16,6 +16,13 @@ package com.activeandroid;
  * limitations under the License.
  */
 
+import android.text.TextUtils;
+import android.util.Log;
+
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
+import com.activeandroid.util.ReflectionUtils;
+
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,13 +30,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import android.text.TextUtils;
-import android.util.Log;
-
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.util.ReflectionUtils;
 
 public final class TableInfo {
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -41,8 +41,8 @@ public final class TableInfo {
 	private String mIdName = Table.DEFAULT_ID_NAME;
 
 	private Map<Field, String> mColumnNames = new LinkedHashMap<Field, String>();
-
-	//////////////////////////////////////////////////////////////////////////////////////
+    private Map<Field,String> mMatchValues = new LinkedHashMap<Field, String>();
+    //////////////////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	//////////////////////////////////////////////////////////////////////////////////////
 
@@ -72,6 +72,9 @@ public final class TableInfo {
                 String columnName = columnAnnotation.name();
                 if (TextUtils.isEmpty(columnName)) {
                     columnName = field.getName();
+                }
+                if(columnAnnotation.matchvalue()){
+                    mMatchValues.put(field,columnName);
                 }
 
                 mColumnNames.put(field, columnName);
@@ -121,4 +124,11 @@ public final class TableInfo {
         return null;
     }
 
+    public boolean hasMatchValue() {
+        return !mMatchValues.isEmpty();
+    }
+
+    public java.util.Set<Field> getMatchValue() {
+        return mMatchValues.keySet();
+    }
 }

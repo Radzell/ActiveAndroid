@@ -35,4 +35,10 @@ public class MockModel extends Model {
 
     @Column
     public boolean booleanField;
+
+    @Column
+    public String stringField;
+
+    @Column(matchvalue =true)
+    public String matchField;
 }

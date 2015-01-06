@@ -173,6 +173,31 @@ public class ModelTest extends ActiveAndroidTestCase {
         assertNull( new Select().from(MockModel.class).where("booleanField = ?", true).executeSingle() );
     }
 
+    /**public void testMatchValueColumn(){
+        MockModel m1 = new MockModel();
+        m1.matchField="testkey"
+        m1.intField=45;
+        m1.stringField="testField";
+        Long id = m1.save();
+
+
+        MockModel databaseMockModel = MockModel.load( MockModel.class, id );
+        assertTrue(databaseMockModel.equals(m1));
+
+        MockModel m2 = new MockModel();
+        m2.matchField="testkey"
+        m2.intField=44;
+        m2.stringField="testField2";
+        Long id2 = m2.save();
+
+        MockModel databaseMockModel = MockModel.load( MockModel.class, id );
+
+        assertFalse(databaseMockModel.equals(m1));
+        assertTrue(databaseMockModel.equals(m2));
+        assertTrue(id1==id2);
+
+    }*/
+
 	/**
      * Test to check the join of two (or more) tables with some fields in common when not use a projection on select.
      * Test the issue #106 (https://github.com/pardom/ActiveAndroid/issues/106)
