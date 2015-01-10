@@ -24,9 +24,9 @@ public class CountTest extends SqlableTestCase {
         m2.intField = 1;
         m3.intField = 2;
 
-        m1.save();
-        m2.save();
-        m3.save();
+        m1.saveOrUpdate();
+        m2.saveOrUpdate();
+        m3.saveOrUpdate();
     }
 
     /**

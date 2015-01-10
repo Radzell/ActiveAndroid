@@ -22,8 +22,8 @@ import com.activeandroid.TableInfo;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
+import com.activeandroid.util.Log;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -76,8 +76,8 @@ public class ModelTest extends ActiveAndroidTestCase {
 		MockModel model2 = new MockModel();
 		MockModel model3;
 
-		model1.save();
-		model2.save();
+		model1.saveOrUpdate();
+		model2.saveOrUpdate();
 		model3 = Model.load(MockModel.class, model1.getId());
 
         // Not equal to each other.
@@ -121,8 +121,8 @@ public class ModelTest extends ActiveAndroidTestCase {
 		Model m2 = new MockModel();
 		Model m3;
 
-		m1.save();
-		m2.save();
+		m1.saveOrUpdate();
+		m2.saveOrUpdate();
 		m3 = Model.load(MockModel.class, m1.getId());
 
 		assertEquals(m1.hashCode(), m3.hashCode());
@@ -139,11 +139,11 @@ public class ModelTest extends ActiveAndroidTestCase {
     public void testColumnNamesDefaulToFieldNames() {
         TableInfo tableInfo = Cache.getTableInfo(MockModel.class);
 
-        for ( Field field : tableInfo.getFields() ) {
+        for ( TableInfo.ColumnField columnField : tableInfo.getColumns() ) {
             // Id column is a special case, we'll ignore that one.
-            if ( field.getName().equals("mId") ) continue;
+            if ( columnField.getField().getName().equals("mId") ) continue;
 
-            assertEquals(field.getName(), tableInfo.getColumnName(field));
+            assertEquals(columnField.getField().getName(), columnField.getName());
         }
     }
 
@@ -153,7 +153,7 @@ public class ModelTest extends ActiveAndroidTestCase {
     public void testBooleanColumnType() {
         MockModel mockModel = new MockModel();
         mockModel.booleanField = false;
-        Long id = mockModel.save();
+        Long id = mockModel.saveOrUpdate();
 
         boolean databaseBooleanValue = MockModel.load( MockModel.class, id ).booleanField;
 
@@ -172,31 +172,53 @@ public class ModelTest extends ActiveAndroidTestCase {
 
         assertNull( new Select().from(MockModel.class).where("booleanField = ?", true).executeSingle() );
     }
+    /**
+     * Mock model as we need 2 different model classes.
+     */
+    @Table(name = "MatcherMockModel")
+    public static class MatcherMockModel extends Model {
+        @Column
+        public Date dateField;
 
-    /**public void testMatchValueColumn(){
-        MockModel m1 = new MockModel();
-        m1.matchField="testkey"
+        @Column
+        public double doubleField;
+
+        @Column
+        public int intField;
+
+        @Column
+        public boolean booleanField;
+
+        @Column
+        public String stringField;
+
+        @Column(matchvalue = true)
+        public String matchField;
+    }
+    public void testMatchValueColumn(){
+        MatcherMockModel m1 = new MatcherMockModel();
+        m1.matchField="testkey";
         m1.intField=45;
         m1.stringField="testField";
-        Long id = m1.save();
+        long id1 = m1.save();
+        Log.i("testing","id");
 
-
-        MockModel databaseMockModel = MockModel.load( MockModel.class, id );
+        MatcherMockModel  databaseMockModel = MatcherMockModel .load( MatcherMockModel .class, id1 );
         assertTrue(databaseMockModel.equals(m1));
+        assertTrue(id1!=-1);
 
-        MockModel m2 = new MockModel();
-        m2.matchField="testkey"
+        MatcherMockModel  m2 = new MatcherMockModel ();
+        m2.matchField="testkey";
         m2.intField=44;
         m2.stringField="testField2";
-        Long id2 = m2.save();
+        long id2 = m2.update();
+        databaseMockModel = MatcherMockModel .load( MatcherMockModel .class, id2 );
 
-        MockModel databaseMockModel = MockModel.load( MockModel.class, id );
+        assertFalse(databaseMockModel.stringField.equals(m1.stringField));
+        assertTrue(databaseMockModel.stringField.equals(m2.stringField));
+        assertTrue(m1.matchField==m2.matchField);
 
-        assertFalse(databaseMockModel.equals(m1));
-        assertTrue(databaseMockModel.equals(m2));
-        assertTrue(id1==id2);
-
-    }*/
+    }
 
 	/**
      * Test to check the join of two (or more) tables with some fields in common when not use a projection on select.
@@ -209,7 +231,7 @@ public class ModelTest extends ActiveAndroidTestCase {
         parent.dateField = new Date();
         parent.doubleField = 2.0;
         parent.intField = 1;
-        parent.save();
+        parent.saveOrUpdate();
 
         //the values to assign to child
         Date dateValue = new Date();
@@ -223,7 +245,7 @@ public class ModelTest extends ActiveAndroidTestCase {
         child1.doubleField = doubleValue;
         child1.intField = intValue;
         child1.parent = parent;
-        child1.save();
+        child1.saveOrUpdate();
 
         ChildMockModel child2 = new ChildMockModel();
         child2.booleanField = false;
@@ -231,7 +253,7 @@ public class ModelTest extends ActiveAndroidTestCase {
         child2.doubleField = doubleValue;
         child2.intField = intValue;
         child2.parent = parent;
-        child2.save();
+        child2.saveOrUpdate();
 
         //Store the ids assigned to child entities when persists
         List<Long> ids = new ArrayList<Long>();

@@ -24,24 +24,24 @@ import com.activeandroid.annotation.Table;
 import com.activeandroid.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 public final class TableInfo {
-	//////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////
 	// PRIVATE MEMBERS
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	private Class<? extends Model> mType;
 	private String mTableName;
 	private String mIdName = Table.DEFAULT_ID_NAME;
+	private Set<ColumnField> mColumns = new LinkedHashSet<ColumnField>();
+    private ColumnField mMatchValue;
+    private ColumnField idColumnField;
 
-	private Map<Field, String> mColumnNames = new LinkedHashMap<Field, String>();
-    private Map<Field,String> mMatchValues = new LinkedHashMap<Field, String>();
     //////////////////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +61,8 @@ public final class TableInfo {
 
         // Manually add the id column since it is not declared like the other columns.
         Field idField = getIdField(type);
-        mColumnNames.put(idField, mIdName);
+        idColumnField = new ColumnField(mIdName, idField,false,true);
+        mColumns.add(idColumnField);
 
         List<Field> fields = new LinkedList<Field>(ReflectionUtils.getDeclaredColumnFields(type));
         Collections.reverse(fields);
@@ -73,14 +74,15 @@ public final class TableInfo {
                 if (TextUtils.isEmpty(columnName)) {
                     columnName = field.getName();
                 }
-                if(columnAnnotation.matchvalue()){
-                    mMatchValues.put(field,columnName);
+                if(columnAnnotation.matchvalue()&&mMatchValue==null){
+                    mMatchValue= new ColumnField(columnName,field,true);
                 }
-
-                mColumnNames.put(field, columnName);
+                mColumns.add(new ColumnField(columnName, field));
             }
         }
-
+        if(mMatchValue==null){
+            mMatchValue=idColumnField;
+        }
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -99,13 +101,6 @@ public final class TableInfo {
 		return mIdName;
 	}
 
-	public Collection<Field> getFields() {
-		return mColumnNames.keySet();
-	}
-
-	public String getColumnName(Field field) {
-		return mColumnNames.get(field);
-	}
 
 
     private Field getIdField(Class<?> type) {
@@ -125,10 +120,58 @@ public final class TableInfo {
     }
 
     public boolean hasMatchValue() {
-        return !mMatchValues.isEmpty();
+        return (mMatchValue!=null);
     }
 
-    public java.util.Set<Field> getMatchValue() {
-        return mMatchValues.keySet();
+    public ColumnField getMatchValue() {
+        return mMatchValue;
     }
+
+    public Set<ColumnField> getColumns() {
+        return mColumns;
+    }
+
+    public static class ColumnField {
+        final String name;
+        String sqlType;
+        final Field field;
+        final boolean isMatchValue;
+        final boolean isAutoIncrement;
+
+
+        public ColumnField(String name, Field field){
+            this(name, field, false, false);
+        }
+        public ColumnField(String name, Field field,boolean isMatchValue){
+            this(name, field, isMatchValue, false);
+        }
+        public ColumnField(String name, Field field, boolean isMatchValue, boolean isAutoIncrement) {
+            this.name = name;
+            this.field = field;
+            this.isMatchValue = isMatchValue;
+            this.isAutoIncrement = isAutoIncrement;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof ColumnField) {
+                return ((ColumnField) o).name.equals(name);
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return this.name.hashCode();
+        }
+
+        public Field getField() {
+            return field;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
+
 }

@@ -27,12 +27,9 @@ import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Column.ConflictAction;
 import com.activeandroid.serializer.TypeSerializer;
 
-import java.lang.Long;
-import java.lang.String;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -135,8 +132,8 @@ public final class SQLiteUtils {
 		sUniqueGroupMap = new HashMap<String, List<String>>();
 		sOnUniqueConflictsMap = new HashMap<String, ConflictAction>();
 
-		for (Field field : tableInfo.getFields()) {
-			createUniqueColumnDefinition(tableInfo, field);
+		for (TableInfo.ColumnField columnField : tableInfo.getColumns()) {
+			createUniqueColumnDefinition(tableInfo, columnField);
 		}
 
 		if (sUniqueGroupMap.isEmpty()) {
@@ -155,11 +152,11 @@ public final class SQLiteUtils {
 		return definitions;
 	}
 
-	public static void createUniqueColumnDefinition(TableInfo tableInfo, Field field) {
-		final String name = tableInfo.getColumnName(field);
-		final Column column = field.getAnnotation(Column.class);
+	public static void createUniqueColumnDefinition(TableInfo tableInfo, TableInfo.ColumnField columnField) {
+		final String name = columnField.getName();
+		final Column column = columnField.getField().getAnnotation(Column.class);
 
-        if (field.getName().equals("mId")) {
+        if (columnField.getField().getName().equals("mId")) {
             return;
         }
 
@@ -190,8 +187,8 @@ public final class SQLiteUtils {
 		final ArrayList<String> definitions = new ArrayList<String>();
 		sIndexGroupMap = new HashMap<String, List<String>>();
 
-		for (Field field : tableInfo.getFields()) {
-			createIndexColumnDefinition(tableInfo, field);
+		for (TableInfo.ColumnField columnField : tableInfo.getColumns()) {
+			createIndexColumnDefinition(tableInfo, columnField);
 		}
 
 		if (sIndexGroupMap.isEmpty()) {
@@ -207,18 +204,17 @@ public final class SQLiteUtils {
 		return definitions.toArray(new String[definitions.size()]);
 	}
 
-	public static void createIndexColumnDefinition(TableInfo tableInfo, Field field) {
-		final String name = tableInfo.getColumnName(field);
-		final Column column = field.getAnnotation(Column.class);
+	public static void createIndexColumnDefinition(TableInfo tableInfo, TableInfo.ColumnField columnField) {
+		final Column column = columnField.getField().getAnnotation(Column.class);
 
-        if (field.getName().equals("mId")) {
+        if (columnField.getField().getName().equals("mId")) {
             return;
         }
 
 		if (column.index()) {
 			List<String> list = new ArrayList<String>();
-			list.add(name);
-			sIndexGroupMap.put(name, list);
+			list.add(columnField.getName());
+			sIndexGroupMap.put(columnField.getName(), list);
 		}
 
 		String[] groups = column.indexGroups();
@@ -231,7 +227,7 @@ public final class SQLiteUtils {
 				list = new ArrayList<String>();
 			}
 
-			list.add(name);
+			list.add(columnField.getName());
 			sIndexGroupMap.put(group, list);
 		}
 	}
@@ -239,8 +235,8 @@ public final class SQLiteUtils {
 	public static String createTableDefinition(TableInfo tableInfo) {
 		final ArrayList<String> definitions = new ArrayList<String>();
 
-		for (Field field : tableInfo.getFields()) {
-			String definition = createColumnDefinition(tableInfo, field);
+		for (TableInfo.ColumnField columnField : tableInfo.getColumns()) {
+			String definition = createColumnDefinition(tableInfo, columnField);
 			if (!TextUtils.isEmpty(definition)) {
 				definitions.add(definition);
 			}
@@ -253,13 +249,13 @@ public final class SQLiteUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static String createColumnDefinition(TableInfo tableInfo, Field field) {
+	public static String createColumnDefinition(TableInfo tableInfo, TableInfo.ColumnField columnField) {
 		StringBuilder definition = new StringBuilder();
 
-		Class<?> type = field.getType();
-		final String name = tableInfo.getColumnName(field);
-		final TypeSerializer typeSerializer = Cache.getParserForType(field.getType());
-		final Column column = field.getAnnotation(Column.class);
+		Class<?> type = columnField.getField().getType();
+		final String name = columnField.getName();
+		final TypeSerializer typeSerializer = Cache.getParserForType(columnField.getField().getType());
+		final Column column = columnField.getField().getAnnotation(Column.class);
 
 		if (typeSerializer != null) {
 			type = typeSerializer.getSerializedType();

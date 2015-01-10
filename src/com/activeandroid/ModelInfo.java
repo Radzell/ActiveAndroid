@@ -16,26 +16,39 @@ package com.activeandroid;
  * limitations under the License.
  */
 
+import android.content.Context;
+import android.graphics.Bitmap;
+
+import com.activeandroid.serializer.CalendarSerializer;
+import com.activeandroid.serializer.FileSerializer;
+import com.activeandroid.serializer.SqlDateSerializer;
+import com.activeandroid.serializer.TypeSerializer;
+import com.activeandroid.serializer.UtilDateSerializer;
+import com.activeandroid.sqlserializer.BitmapSerializerSql;
+import com.activeandroid.sqlserializer.BooleanSerializerSql;
+import com.activeandroid.sqlserializer.DateSerializerSql;
+import com.activeandroid.sqlserializer.DoubleSerializerSql;
+import com.activeandroid.sqlserializer.FloatSerializerSql;
+import com.activeandroid.sqlserializer.IntSerializerSql;
+import com.activeandroid.sqlserializer.LongSerializerSql;
+import com.activeandroid.sqlserializer.SqlTypeSerializer;
+import com.activeandroid.sqlserializer.StringSerializerSql;
+import com.activeandroid.util.Log;
+import com.activeandroid.util.ReflectionUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import android.content.Context;
-
-import com.activeandroid.serializer.CalendarSerializer;
-import com.activeandroid.serializer.SqlDateSerializer;
-import com.activeandroid.serializer.TypeSerializer;
-import com.activeandroid.serializer.UtilDateSerializer;
-import com.activeandroid.serializer.FileSerializer;
-import com.activeandroid.util.Log;
-import com.activeandroid.util.ReflectionUtils;
 import dalvik.system.DexFile;
 
 final class ModelInfo {
@@ -53,7 +66,31 @@ final class ModelInfo {
 		}
 	};
 
-	//////////////////////////////////////////////////////////////////////////////////////
+    private Map<Class, SqlTypeSerializer> mSqlTypeSerializers = new ConcurrentHashMap<Class, SqlTypeSerializer>(){
+        {
+            put(int.class, new IntSerializerSql());
+            put(Integer.class, new IntSerializerSql());
+
+            put(long.class, new LongSerializerSql());
+            put(Long.class, new LongSerializerSql());
+
+            put(float.class, new FloatSerializerSql());
+            put(Float.class, new FloatSerializerSql());
+
+            put(double.class, new DoubleSerializerSql());
+            put(Double.class, new DoubleSerializerSql());
+
+            put(boolean.class, new BooleanSerializerSql());
+            put(Boolean.class, new BooleanSerializerSql());
+
+            put(String.class, new StringSerializerSql());
+            put(Date.class, new DateSerializerSql());
+            put(Bitmap.class, new BitmapSerializerSql());
+        }
+    };
+
+
+    //////////////////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	//////////////////////////////////////////////////////////////////////////////////////
 
@@ -86,6 +123,9 @@ final class ModelInfo {
 		return mTypeSerializers.get(type);
 	}
 
+    public SqlTypeSerializer getSQLTypeSerializer(Class<?> type) {
+        return mSqlTypeSerializers.get(type);
+    }
 	//////////////////////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -206,4 +246,6 @@ final class ModelInfo {
 			}
 		}
 	}
+
+
 }

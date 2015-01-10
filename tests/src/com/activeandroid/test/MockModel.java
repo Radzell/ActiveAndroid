@@ -39,6 +39,4 @@ public class MockModel extends Model {
     @Column
     public String stringField;
 
-    @Column(matchvalue =true)
-    public String matchField;
 }
