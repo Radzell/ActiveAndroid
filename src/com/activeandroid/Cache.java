@@ -64,8 +64,7 @@ public final class Cache {
 		}
 
 		sContext = configuration.getContext();
-        scanForModelInfo(configuration);
-
+        sModelInfo = new ModelInfo(configuration);
 		sDatabaseHelper = new DatabaseHelper(configuration);
 
 		// TODO: It would be nice to override sizeOf here and calculate the memory
@@ -80,20 +79,6 @@ public final class Cache {
 
 		Log.v("ActiveAndroid initialized successfully.");
 	}
-
-    private static void scanForModelInfo(Configuration configuration) {
-        if(!sScannedForModelInfo) {
-            sModelInfo = new ModelInfo(configuration);
-            sScannedForModelInfo =  true;
-        }
-    }
-
-    public static void scanForModelInfo(Context context) {
-        if(!sScannedForModelInfo) {
-            sModelInfo = new ModelInfo(context);
-            sScannedForModelInfo =  true;
-        }
-    }
 
     public static synchronized void clear() {
 		sEntities.evictAll();
