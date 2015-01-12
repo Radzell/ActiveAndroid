@@ -96,16 +96,19 @@ final class ModelInfo {
 
 	public ModelInfo(Configuration configuration) {
 		if (!loadModelFromMetaData(configuration)) {
-			try {
-				scanForModel(configuration.getContext());
-			}
-			catch (IOException e) {
-				Log.e("Couldn't open source path.", e);
-			}
+            loadFromContext(configuration.getContext());
 		}
 
 		Log.i("ModelInfo loaded.");
-	}
+
+    }
+
+
+
+    public ModelInfo(Context context){
+        loadFromContext(context);
+        Log.i("ModelInfo loaded.");
+    }
 
 	//////////////////////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
@@ -129,6 +132,13 @@ final class ModelInfo {
 	//////////////////////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	//////////////////////////////////////////////////////////////////////////////////////
+    private void loadFromContext(Context context) {
+        try {
+            scanForModel(context);
+        } catch (IOException e) {
+            Log.e("Couldn't open source path.", e);
+        }
+    }
 
 	private boolean loadModelFromMetaData(Configuration configuration) {
 		if (!configuration.isValid()) {

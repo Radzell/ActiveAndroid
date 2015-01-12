@@ -201,7 +201,6 @@ public class ModelTest extends ActiveAndroidTestCase {
         m1.intField=45;
         m1.stringField="testField";
         long id1 = m1.save();
-        Log.i("testing","id");
 
         MatcherMockModel  databaseMockModel = MatcherMockModel .load( MatcherMockModel .class, id1 );
         assertTrue(databaseMockModel.equals(m1));

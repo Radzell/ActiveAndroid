@@ -44,8 +44,9 @@ public final class Cache {
 	private static LruCache<String, Model> sEntities;
 
 	private static boolean sIsInitialized = false;
+    private static boolean sScannedForModelInfo;
 
-	//////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	//////////////////////////////////////////////////////////////////////////////////////
 
@@ -63,7 +64,8 @@ public final class Cache {
 		}
 
 		sContext = configuration.getContext();
-		sModelInfo = new ModelInfo(configuration);
+        scanForModelInfo(configuration);
+
 		sDatabaseHelper = new DatabaseHelper(configuration);
 
 		// TODO: It would be nice to override sizeOf here and calculate the memory
@@ -79,7 +81,21 @@ public final class Cache {
 		Log.v("ActiveAndroid initialized successfully.");
 	}
 
-	public static synchronized void clear() {
+    private static void scanForModelInfo(Configuration configuration) {
+        if(!sScannedForModelInfo) {
+            sModelInfo = new ModelInfo(configuration);
+            sScannedForModelInfo =  true;
+        }
+    }
+
+    public static void scanForModelInfo(Context context) {
+        if(!sScannedForModelInfo) {
+            sModelInfo = new ModelInfo(context);
+            sScannedForModelInfo =  true;
+        }
+    }
+
+    public static synchronized void clear() {
 		sEntities.evictAll();
 		Log.v("Cache cleared.");
 	}
