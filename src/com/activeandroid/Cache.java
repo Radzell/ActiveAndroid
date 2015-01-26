@@ -160,9 +160,16 @@ public final class Cache {
 		return sModelInfo.getTableInfo(type).getTableName();
 	}
     public static synchronized int getOldDbVersion(){
-        return sDatabaseHelper.getOldDbVersion();
+        if(sDatabaseHelper!=null) {
+            return sDatabaseHelper.getOldDbVersion();
+        }
+        return -1;
     }
-    public static synchronized int getOldNewVersion(){
-        return sDatabaseHelper.getNewDbVersion();
+    public static synchronized int getOldNewVersion() {
+        if (sDatabaseHelper != null) {
+            return sDatabaseHelper.getNewDbVersion();
+        }
+        return -1;
     }
+
 }

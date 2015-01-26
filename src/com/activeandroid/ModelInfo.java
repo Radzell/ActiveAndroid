@@ -253,7 +253,9 @@ final class ModelInfo {
 			}
 			catch (IllegalAccessException e) {
 				Log.e("IllegalAccessException", e);
-			}
+			}catch (NoClassDefFoundError e){
+                Log.e("NoClassDefFoundError", e);
+            }
 		}
 	}
 

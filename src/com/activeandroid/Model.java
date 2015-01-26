@@ -21,6 +21,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.activeandroid.app.ORMException;
 import com.activeandroid.content.ContentProvider;
 import com.activeandroid.query.Delete;
 import com.activeandroid.query.Select;
@@ -98,11 +99,14 @@ public abstract class Model {
     public void onBeforeSave() {
 
     }
+    public final Long saveOrUpdate(boolean saveNulls) throws SQLException {
+        return saveOrUpdate(true,true,saveNulls);
+    }
 
     public final Long saveOrUpdate() throws SQLException {
-        return saveOrUpdate(true,true);
+        return saveOrUpdate(true,true,false);
     }
-    private final Long saveOrUpdate(boolean update, boolean save) throws SQLException {
+    private final Long saveOrUpdate(boolean update, boolean save,boolean saveNulls) throws SQLException {
         onBeforeSave();
         final SQLiteDatabase db = Cache.openDatabase();
         final ContentValues values = new ContentValues();
@@ -141,7 +145,9 @@ public abstract class Model {
                 }
                 // TODO: Find a smarter way to do this? This if block is necessary because we
                 // can't know the type until runtime.
-                if (value == null) {
+                if(value==null&&!saveNulls){
+                    continue;
+                } else if (value == null&&saveNulls) {
                     values.putNull(columnField.getName());
                 } else if (fieldType.equals(Byte.class) || fieldType.equals(byte.class)) {
                     values.put(columnField.getName(), (Byte) value);
@@ -186,10 +192,18 @@ public abstract class Model {
                 if (affected <= 0&&save) {
                     mId = db.insertOrThrow(mTableInfo.getTableName(), null, values);
                 }else{
-                    mId = new Select(idName).from(mTableInfo.getType()).where(matchColumnField.getName() + " = ?", matchValue).executeSingle().getId();
+                    Log.i(matchValue+" updated in"+mTableInfo.getTableName()+", rows affected "+affected);
+                    Model object = new Select(idName).from(mTableInfo.getType()).where(matchColumnField.getName() + " = ?", matchValue).executeSingle();
+                    if(object==null){
+                        throw new ORMException("Model was not saved");
+                    }else {
+                        mId = object.getId();
+                    }
                 }
             } else if(save) {
                 mId = db.insertOrThrow(mTableInfo.getTableName(), null, values);
+                Log.i(matchValue+" saved in"+mTableInfo.getTableName());
+
             }
 
 
@@ -202,12 +216,19 @@ public abstract class Model {
     }
 
     public final long save() throws SQLException {
-        return saveOrUpdate(false,true);
+        return saveOrUpdate(false,true,false);
     }
 
     public final long update() throws SQLException {
-        return saveOrUpdate(true,false);
+        return saveOrUpdate(true,false,false);
     }
+    public final long save(boolean saveNulls) throws SQLException {
+        return saveOrUpdate(false,true,saveNulls);
+    }
+    public final long update(boolean saveNulls) throws SQLException {
+        return saveOrUpdate(true,false,saveNulls);
+    }
+
     // Convenience methods
 
     public static void delete(Class<? extends Model> type, long id) {
