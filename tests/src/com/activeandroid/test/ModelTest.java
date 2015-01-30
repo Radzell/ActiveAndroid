@@ -175,26 +175,7 @@ public class ModelTest extends ActiveAndroidTestCase {
     /**
      * Mock model as we need 2 different model classes.
      */
-    @Table(name = "MatcherMockModel")
-    public static class MatcherMockModel extends Model {
-        @Column
-        public Date dateField;
 
-        @Column
-        public double doubleField;
-
-        @Column
-        public int intField;
-
-        @Column
-        public boolean booleanField;
-
-        @Column
-        public String stringField;
-
-        @Column(matchvalue = true)
-        public String matchField;
-    }
     public void testMatchValueColumn(){
         MatcherMockModel m1 = new MatcherMockModel();
         m1.matchField="testkey";
@@ -217,6 +198,64 @@ public class ModelTest extends ActiveAndroidTestCase {
         assertTrue(databaseMockModel.stringField.equals(m2.stringField));
         assertTrue(m1.matchField==m2.matchField);
 
+    }
+    /**
+     * Mock model as we need 2 different model classes.
+     */
+    public class ExtendedMockModel extends MatcherMockModel {
+
+        @Column
+        public int newintField;
+
+        @Column
+        public String newstringField;
+
+
+    }
+    public class ExtendedExtendedMockModel extends ExtendedMockModel{
+
+        @Column
+        public int newerintField;
+
+        @Column
+        public String newerstringField;
+
+
+    }
+    public void testSTIModel(){
+        ExtendedMockModel extendedMockModel = new ExtendedMockModel();
+        ExtendedExtendedMockModel extendedextendedMockModel = new ExtendedExtendedMockModel();
+        MatcherMockModel mockModel = new MatcherMockModel();
+
+        TableInfo extendedextendedTableInfo = Cache.getTableInfo(ExtendedExtendedMockModel.class);
+        TableInfo extendedTableInfo = Cache.getTableInfo(ExtendedMockModel.class);
+        TableInfo tableInfo = Cache.getTableInfo(MatcherMockModel.class);
+
+        //assertTrue(extendTableInfo.getColumns().equals(tableInfo));
+        assertTrue(extendedTableInfo.getTableName().equals("MatcherMockModel"));
+        assertTrue(extendedextendedTableInfo.getTableName().equals("MatcherMockModel"));
+
+        assertTrue(extendedTableInfo.getColumns().contains(new TableInfo.ColumnField("newintField")));
+        assertTrue(extendedTableInfo.getColumns().contains(new TableInfo.ColumnField("newstringField")));
+        assertTrue(extendedTableInfo.getColumns().contains(new TableInfo.ColumnField("intField")));
+        assertTrue(extendedTableInfo.getColumns().contains(new TableInfo.ColumnField("stringField")));
+
+        assertTrue(extendedextendedTableInfo.getColumns().contains(new TableInfo.ColumnField("newerintField")));
+        assertTrue(extendedextendedTableInfo.getColumns().contains(new TableInfo.ColumnField("newerstringField")));
+        assertTrue(extendedextendedTableInfo.getColumns().contains(new TableInfo.ColumnField("newintField")));
+        assertTrue(extendedextendedTableInfo.getColumns().contains(new TableInfo.ColumnField("newstringField")));
+        assertTrue(extendedextendedTableInfo.getColumns().contains(new TableInfo.ColumnField("intField")));
+        assertTrue(extendedextendedTableInfo.getColumns().contains(new TableInfo.ColumnField("stringField")));
+
+        extendedMockModel.intField=10;
+        extendedMockModel.newintField=1;
+        extendedMockModel.stringField="test";
+        extendedMockModel.matchField="testMatch";
+        long id = extendedMockModel.save();
+
+        MatcherMockModel  databaseMockModel = MatcherMockModel.load( MatcherMockModel .class, id );
+        assertTrue(databaseMockModel.intField==10);
+        assertTrue(databaseMockModel.stringField.equals("test"));
     }
 
 	/**

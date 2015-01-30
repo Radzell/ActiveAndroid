@@ -144,6 +144,9 @@ public final class Cache {
 	public static synchronized Collection<TableInfo> getTableInfos() {
 		return sModelInfo.getTableInfos();
 	}
+    public static synchronized java.util.Set<Class<? extends Model>> getModels() {
+        return sModelInfo.getModels();
+    }
 
 	public static synchronized TableInfo getTableInfo(Class<? extends Model> type) {
 		return sModelInfo.getTableInfo(type);

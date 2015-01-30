@@ -55,8 +55,9 @@ final class ModelInfo {
 	//////////////////////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	//////////////////////////////////////////////////////////////////////////////////////
+    private Map<String, TableInfo> mTableInfos = new HashMap<String, TableInfo>();
 
-	private Map<Class<? extends Model>, TableInfo> mTableInfos = new HashMap<Class<? extends Model>, TableInfo>();
+	private Map<Class<? extends Model>, String> mModelTableInfos = new HashMap<Class<? extends Model>, String>();
 	private Map<Class<?>, TypeSerializer> mTypeSerializers = new HashMap<Class<?>, TypeSerializer>() {
 		{
 			put(Calendar.class, new CalendarSerializer());
@@ -117,9 +118,12 @@ final class ModelInfo {
 	public Collection<TableInfo> getTableInfos() {
 		return mTableInfos.values();
 	}
+    public java.util.Set<Class<? extends Model>> getModels() {
+        return mModelTableInfos.keySet();
+    }
 
 	public TableInfo getTableInfo(Class<? extends Model> type) {
-		return mTableInfos.get(type);
+		return mTableInfos.get(mModelTableInfos.get(type));
 	}
 
 	public TypeSerializer getTypeSerializer(Class<?> type) {
@@ -148,7 +152,16 @@ final class ModelInfo {
 		final List<Class<? extends Model>> models = configuration.getModelClasses();
 		if (models != null) {
 			for (Class<? extends Model> model : models) {
-				mTableInfos.put(model, new TableInfo(model));
+                TableInfo tableinfo = new TableInfo(model);
+                if(mTableInfos.containsKey(tableinfo.getTableName())){
+                    TableInfo oldtableInfo = mTableInfos.get(tableinfo.getTableName());
+                    oldtableInfo.addColumns(tableinfo.getColumns());
+                    oldtableInfo.addType(tableinfo.getPimraryType());
+                    tableinfo = oldtableInfo;
+                }else{
+                    mTableInfos.put(tableinfo.getTableName(), tableinfo);
+                }
+                mModelTableInfos.put(model,tableinfo.getTableName());
 			}
 		}
 
@@ -238,7 +251,16 @@ final class ModelInfo {
 				if (ReflectionUtils.isModel(discoveredClass)) {
 					@SuppressWarnings("unchecked")
 					Class<? extends Model> modelClass = (Class<? extends Model>) discoveredClass;
-					mTableInfos.put(modelClass, new TableInfo(modelClass));
+                    TableInfo tableinfo = new TableInfo(modelClass);
+                    if(mTableInfos.containsKey(tableinfo.getTableName())){
+                        TableInfo oldtableInfo = mTableInfos.get(tableinfo.getTableName());
+                        oldtableInfo.addColumns(tableinfo.getColumns());
+                        oldtableInfo.addType(tableinfo.getPimraryType());
+                        tableinfo = oldtableInfo;
+                    }else{
+                        mTableInfos.put(tableinfo.getTableName(), tableinfo);
+                    }
+                    mModelTableInfos.put(modelClass,tableinfo.getTableName());
 				}
 				else if (ReflectionUtils.isTypeSerializer(discoveredClass)) {
 					TypeSerializer instance = (TypeSerializer) discoveredClass.newInstance();

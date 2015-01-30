@@ -51,6 +51,7 @@ public abstract class Model {
 
     private TableInfo mTableInfo;
     private String idName;
+    private Class<? extends Model> mType;
     //////////////////////////////////////////////////////////////////////////////////////
     // CONSTRUCTORS
     //////////////////////////////////////////////////////////////////////////////////////
@@ -71,6 +72,7 @@ public abstract class Model {
     //////////////////////////////////////////////////////////////////////////////////////
 
     private void enableDB(boolean enable) {
+        mType = getClass();
         mTableInfo = Cache.getTableInfo(getClass());
         idName = mTableInfo.getIdName();
         dbEnabled = enable;
@@ -93,7 +95,7 @@ public abstract class Model {
         Cache.removeEntity(this);
 
         Cache.getContext().getContentResolver()
-                .notifyChange(ContentProvider.createUri(mTableInfo.getType(), mId), null);
+                .notifyChange(ContentProvider.createUri(mType, mId), null);
     }
 
     public void onBeforeSave() {
@@ -193,7 +195,7 @@ public abstract class Model {
                     mId = db.insertOrThrow(mTableInfo.getTableName(), null, values);
                 }else{
                     Log.i(matchValue+" updated in"+mTableInfo.getTableName()+", rows affected "+affected);
-                    Model object = new Select(idName).from(mTableInfo.getType()).where(matchColumnField.getName() + " = ?", matchValue).executeSingle();
+                    Model object = new Select(idName).from(mType).where(matchColumnField.getName() + " = ?", matchValue).executeSingle();
                     if(object==null){
                         throw new ORMException("Model was not saved");
                     }else {
@@ -208,7 +210,7 @@ public abstract class Model {
 
 
             Cache.getContext().getContentResolver()
-                    .notifyChange(ContentProvider.createUri(mTableInfo.getType(), mId), null);
+                    .notifyChange(ContentProvider.createUri(mType, mId), null);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -238,7 +240,7 @@ public abstract class Model {
 
     public static <T extends Model> T load(Class<T> type, long id) {
         TableInfo tableInfo = Cache.getTableInfo(type);
-        return (T) new Select().from(type).where(tableInfo.getIdName() + "=?", id).executeSingle();
+        return (T) new Select().from(type).where(tableInfo.getIdName() + "= ?", id).executeSingle();
     }
 
     // Model population

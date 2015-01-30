@@ -49,11 +49,15 @@ public class ContentProvider extends android.content.ContentProvider {
 
             // content://<authority>/<table>
             URI_MATCHER.addURI(sAuthority, tableInfo.getTableName().toLowerCase(), tableKey);
-            TYPE_CODES.put(tableKey, tableInfo.getType());
+            for(Class<? extends Model> type : tableInfo.getTypes()) {
+                TYPE_CODES.put(tableKey, type);
+            }
 
             // content://<authority>/<table>/<id>
             URI_MATCHER.addURI(sAuthority, tableInfo.getTableName().toLowerCase() + "/#", itemKey);
-            TYPE_CODES.put(itemKey, tableInfo.getType());
+            for(Class<? extends Model> type : tableInfo.getTypes()) {
+                TYPE_CODES.put(itemKey, type);
+            }
         }
 
         return true;

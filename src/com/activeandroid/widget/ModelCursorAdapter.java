@@ -27,7 +27,7 @@ public class ModelCursorAdapter<T extends Model>  extends CursorAdapter {
     public T getItem(int position) {
         Cursor cursor = (Cursor) super.getItem(position);
         List<T> entities = processCursor(t.getClass(), cursor);
-        if(entities.size()>0) {
+        if(!entities.isEmpty()) {
             return entities.get(0);
         }else{
             return null;

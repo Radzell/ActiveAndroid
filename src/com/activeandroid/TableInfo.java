@@ -25,6 +25,7 @@ import com.activeandroid.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +36,7 @@ public final class TableInfo {
 	// PRIVATE MEMBERS
 	//////////////////////////////////////////////////////////////////////////////////////
 
-	private Class<? extends Model> mType;
+	private Set<Class<? extends Model>> mTypes = new HashSet<Class<? extends Model>>();
 	private String mTableName;
 	private String mIdName = Table.DEFAULT_ID_NAME;
 	private Set<ColumnField> mColumns = new LinkedHashSet<ColumnField>();
@@ -47,7 +48,7 @@ public final class TableInfo {
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	public TableInfo(Class<? extends Model> type) {
-		mType = type;
+		mTypes.add(type);
 
 		final Table tableAnnotation = type.getAnnotation(Table.class);
 
@@ -89,9 +90,12 @@ public final class TableInfo {
 	// PUBLIC METHODS
 	//////////////////////////////////////////////////////////////////////////////////////
 
-	public Class<? extends Model> getType() {
-		return mType;
+	public Class<? extends Model> getPimraryType() {
+		return (Class<? extends Model>) mTypes.toArray()[0];
 	}
+    public Set<Class<? extends Model>> getTypes() {
+        return mTypes;
+    }
 
 	public String getTableName() {
 		return mTableName;
@@ -131,6 +135,14 @@ public final class TableInfo {
         return mColumns;
     }
 
+    public void addColumns(Set<ColumnField> columns) {
+        mColumns.addAll(columns);
+    }
+
+    public void addType(Class<? extends Model> type) {
+        mTypes.add(type);
+    }
+
     public static class ColumnField {
         final String name;
         String sqlType;
@@ -138,6 +150,9 @@ public final class TableInfo {
         final boolean isMatchValue;
         final boolean isAutoIncrement;
 
+        public ColumnField(String name){
+            this(name, null, false, false);
+        }
 
         public ColumnField(String name, Field field){
             this(name, field, false, false);
